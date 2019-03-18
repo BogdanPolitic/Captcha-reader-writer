@@ -1,0 +1,163 @@
+					 NUME STUDENT: POLITIC ANDREI-BOGDAN
+
+
+===================================================== TEMA 3 - PC =====================================================
+======================================== DESCRIEREA ALGORITMILOR IMPLEMENTATI =========================================
+
+
+======= FISIERE HEADER .H IMPLEMENTATE: ===============================================================================
+
+	bmp_header.h -
+	Este header-ul in care se afla structurile folosite in descrierea fisisierului (imaginii) bmp, iar structura
+adaugata de mine la scheleteul initial este "struct RGB" care contine caracteristicile pixel-ului, respectiv culorile
+ce se compun (R, G ,B) cu valori unsigned char intre 0 si 255, si inca un unsigned char (visited) care in exercitiile
+urmatoare urmeaza sa indice daca pixel-ul a fost vizitat sau nu in cadrul a diverse operatii (recursive) pe pixeli. Operatiile se fac pe noduri nevizitate, iar acestea capata ulterior statutul de vizitate, pentru a se evita trecerea
+prin ele a doua oara.
+
+	stack.h -
+	Este un header in totalitate implementat de mine, care contine structurile cu campurile necesare si functiile
+pentru implementarea unei stive (liste dublu inlantuite, la care adaugarea se face la capat, iar scoaterea se face de
+la acelasi capat). Ideea consta in evitarea reapelarii unei functii recursive cu prea multi parametri, in cadrul task-
+ului 2. Stiva 'retine' doar doua valori: cele doua coordonate ale pixelilor din cadrul imaginii.
+
+======= FISIERUL .C IMPLEMENTAT (imgEditor.c) =========================================================================
+=============== DESCRIEREA FUNCTIILOR, IN ORDINE DE SUS IN JOS ========================================================
+
+	outputImageName -
+	Aceasta functie primeste numele imaginii de input (prima linie din input.txt) si numele task-ului (4 pentru
+bonus) si compune string-ul name cu numele fisierului de iesire pentru acel task.
+
+	readInputColors -
+	Functia primeste cea de a doua linie din fisierul de input input.txt, citeste valorile canalelor culorii si
+returneaza culoarea intr-o structura de tip struct RGB (definita in header-ul bmp_header.h).
+
+	equalColors -
+	Functia primeste doua culori (doi parametri de tip struct RGB) si verifica daca au toate campurile (in afara
+de visited) egale. In caz afirmativ, returneaza 1, iar altfel, 0.
+
+	readFileHeader -
+	Functia primeste imaginea de intrare si citeste informatia pentru campurile din structura struct
+ bmp_fileheader. In total sunt 6 campuri de "umplut", informatia se afla in primii 14 bytes din fisierul .bmp.
+
+	readInfoHeader -
+	Functia primeste imaginea de intrare si citeste informatia pentru campurile din structura struct bmp_infoheader. In total sunt 11 campuri de "umplut", informatia se afla in urmatorii 40 de bytes din fisierul .bmp.
+
+	makePixelMatrix -
+	Functia aloca o matrice de lungimea si latimea imaginii de input. Fiecare pixel se introduce in matricea nou
+alocata astfel: de la stanga la dreapta, de jos in sus. Matricea de pixeli este returnata de functie.
+
+	outOfBoundsException -
+	Functia primeste o anumita pozitie (pe cele 2 coordonate) si o anumita lungime si latime, intre care punctul
+de la acea pozitie se incadreaza (caz in care returneaza 1) sau nu (caz in care returneaza 0).
+
+	floodFillOneDigit -
+	Este o functie recursiva care primeste o anumita pozitie, iar in functie de culoarea de la acea pozitie (daca
+este diferita sau nu de culoarea alb(Blue: 255, Green: 255, Red: 255) si/sau de culoarea data ca parametru) functia
+intra sau nu in ciclul recursiv (apeleaza pixelii vecini de sus, de jos, de stanga si din dreapta). Daca culoarea de
+la acea pozitie este alba sau este de culoarea data ca parametru, functia nu mai intra mai adanc in ciclul recursiv,
+ci nu face nimic, iar in caz contrar, functia intra in ciclu, reapelandu-se pentru fiecare din cei patru vecini.
+	Cu mai putine cuvinte, functia "umple" cu o anumita culoare (diferita de cea initiala) o anumita cifra din
+captcha.
+
+	makeColor -
+	Returneaza o culoare (structura struct RGB) avand pentru canale, in ordine (albastru, verde, rosu) valorile
+date ca parametru.
+
+	decodeDigit -
+	Returneaza, in functie de parametrul primit, o anumita valoare de la 0 la 9, sau 20 in caz default (incorect).
+	Functia practic primeste un cod specific unei cifre, si returneaza decodificarea lui.
+
+	continueDescending -
+	Functia primeste o anumita pozitie (coordonate j si i), matricea de pixeli si inaltimea matricei de pixeli.
+Daca culoarea de la acea pozitie este alba, sau este o culoarea cu campul visited avand valoarea 1, sau coordonata j
+este mai mica decat inaltimea matricei minus 1 (plus primele 2 conditii), functia returneaza 1. In caz contrar, daca
+pozitia este mai jos decat matricea, sau daca pozitia are o culoare diferita de alb, cu campul visited avand valoarea
+0, functia returneaza 0.
+	Practic, se cauta o cifra din captcha inca nevizitata, pe o anumita coloana, de sus in jos. Daca s-a gasit,
+functia "spune" ca parcurgerea pe coloana sa fie oprita (returneaza 0). Daca s-a ajuns la capatul matricei si nu s-a
+gasit, functia "spune" acelasi lucru (returneaza 0). Daca nu s-a ajung la capat si nici nu s-a gasit cifra, functia
+returneaza 1 ("spune" sa se continue parcurgerea/coborarea pe coloana).
+
+	searchForTopRight -
+	Functia primeste o pozitie (coordonate j si i) la care se afla o cifra din captcha inca nevizitata. Prin
+intermediul unei stive implementate (se foloseste asadar biblioteca implementata stack.h) se parcurge acea cifra in
+totalitate, pe pixeli, scopul fiind gasirea pixel-ului de cifra din coltul din dreapta sus (cu coordonata j cea mai
+mica si coordonata i cea mai mare, unde j este inaltimea, iar i este latimea in matricea de pixeli).
+	Umplerea/dezumplerea stivei se fac astfel: se pune pixel-ul pe stiva, apoi, daca acesta se afla in cifra, se
+pun in continuare in stiva cei patru vecini (sus, jos, stanga, dreapta). Se ia primul pixel/vecin din varful stivei.
+Daca nu verifica conditia, se sterge din varful stivei si se ia urmatorul, si tot asa, pana cand stiva, micsorandu-se
+treptat, se goleste de tot.
+
+	leftsidePixelCount -
+	Functia primeste o pozitie (obligatoriu "coltul" din dreapta sus al unei cifre din captcha) si verifica cati
+pixeli consecutivi se afla la stanga si apartin cifrei (pot fi minim unul, maxim cinci).
+
+	downsidePixelCount -
+	Functia primeste o pozitie (obligatoriu "coltul" din dreapta sus al unei cifre din captcha) si verifica cati
+pixeli consecutivi se afla dedesubt si apartin cifrei (pot fi minim unul, maxim cinci).
+
+	outputToImage -
+	Functia primeste numele fisierului bmp de output si pe cel de input, matricea de pixeli, lungimea si inaltimea
+imaginii(matricei). Intai se deschid ambele stream-uri (imaginile de input si de output), se citesc din imaginea de
+input FileHeader-ul si InfoHeader-ul in cate un string, iar apoi se pune informatia, in ordine, byte cu byte, din
+string-uri (incepand cu FileHeader) in stream-ul de output, iar apoi tot byte cu byte in stream-ul de output matricea
+de pixeli (ordinea parcurgerii matricei fiind de la dreapta la stanga, apoi de sus in jos). La final se inchid cele
+doua stream-uri.
+
+	outputToFile -
+	Functia primeste un string si numele fisierului text de output (pentru task-ul 2). Se deschide stream-ul
+fisierului, se plaseaza string-ul, iar apoi se inchide stream-ul.
+
+=============== DESCRIEREA ALGORITMULUI ===============================================================================
+
+	In functia main, mai intai se declara si se aloca spatiu pentru toate string-urile ce reprezinta nume de
+fisiere de input/output. Se citeste fisierul input.txt, se preiau si se compun numele pentru fisiere, iar apoi se
+deschide stream-ul fisierului .bmp de intrare si se "organizeaza" informatia, adica in structuri corespunzatoare se
+pune informatia din FileHeader, InfoHeader si din matricea de pixeli si apoi se inchide stream-ul de input.
+	Din acest punct, incep sa lucrez strict pentru task-ul 2. Motivul este ca dupa rezolvarea acestui task, voi
+retine niste date care vor ajuta la rezolvarea primului task intr-o complexitate temporala semnificativ mai mica.
+	Se initializeaza variabila digitCount cu 0, care o sa numere cate cifre se afla in captcha. Se initializeaza
+matricea de pixeli. For-ul de complexitate O(n^2) implementeaza algoritmul pentru task-ul 2. Practic, invariantul va
+fi numarul coloanei, coloanele se vor parcurge de la stanga la dreapta, iar pentru fiecare coloana se vor parcurge
+liniile de sus in jos. Functia continueDescending ne spune daca am gasit sau nu o cifra inca "nevizitata" in captcha.
+Daca nu, "coborarea" pe coloana se continua pana se ajunge la capatul de jos al matricei, caz in care daca nici acolo
+nu se afla un digit nevizitat inca, se trece la coloana urmatoare. Pentru invariantul linie, daca se indeplineste
+conditia (adica daca nu apuca counter-ul sa ajunga la capatul de jos al matricei), inseamna ca s-a gasit un digit
+nevizitat, caz in care se intampla urmatoarele lucruri:
+	- digitCount se incrementeaza (evident)
+	- se initializeaza variabila digitPixels care urmeaza sa retina cati pixeli are digit-ul respectiv
+	- mai includ doua variabile:
+		-> (max_i, min_j) vor indica coordonatele coltului din DREAPTA SUS al cifrei
+	- max_i si min_j se initializeaza cu coloana si linia la care ne aflam in acest moment, urmand ca pe parcursul
+algoritmului implementat imediat mai jos, acestea sa se schimbe, ulterior ajungand la valorile dorite.
+	- functia searchForTopRight face 3 lucruri:
+		-> marcheaza cifrele prin care trece ca vizitate (marcheaza toti pixelii de cifra ca vizitati)
+		-> aduce variabilele max_i si min_j la valorile coordonatelor coltului de sus din dreapta (coltul de
+sus din dreapta se va afla la (line, column) == (min_j, max_i), adica linia minima si coloana maxima din digit)
+		-> aduce variabila digitPixels la valorea numarului total de pixeli din cifra respectiva
+	- encodarea fiecarui digit se face in felul urmator:
+		-> avem retinute:	--> cati pixeli are digit-ul
+					--> cati pixeli consecutivi ce apartin digit-ului se afla la stanga coltului
+din dreapta-sus
+					--> cati pixeli consecutivi ce apartin digit-ului se afla in josul coltului
+din dreapta-sus
+		-> daca adunam toate aceste 3 valori, observam ca pentru fiecare tip de digit din captcha (0, 1, 2, 3,
+4, 5, 6, 7, 8, 9) obtinem sume diferite. Acest fapt va face usoara recunoasterea cifrei prin CODIFICARE, iar apoi
+DECODIFICARE.
+		-> rezultatul acestei sume se pune in variabila digitEncoding.
+		-> functia decodeDigit returneaza valoarea digit-ului respectiv din captcha, ce are corespunzatoare
+acea suma (acea codificare)
+		-> valoarea cifrei obtinute in urma decodificarii se pune in *chr, sub forma de caractere (avand codul
+ascii egal cu valoarea cifrei + 48)
+		-> se repeta buclele generate de for pana cand se ajunge si se parcurge si ultima coloana din matrice
+	Astfel, chr este un string de un caracter, pe care il concatenez la string-ul mare (pe nume digitsNumber).
+String-ul mare urmeaza apoi sa fie copiat in fisierul de output pentru task-ul 2. (functia outputToFile face  asta)
+
+	Ceea ce am retinut prin acest algoritm au fost colturile din dreapta sus pentru fiecare digit din captcha (am
+format un vector cu toate aceste coordonate, in ordine).
+	Urmeaza implementarea task-ului 1. In loc sa mai parcurg toata matricea in complexitate O(n^2) pentru a gasi
+cifrele, parcurg doar vectorul cu colturile (care implicit se afla in digit), si pentru fiecare apelez functia
+floodFillDigit, dand ca parametru culoarea specificata in a doua linie a fisierului de input, iar functia aceasta
+coloreaza recursiv toti pixelii din acea cifra.
+	Matricea de pixeli astfel modificata, se transmite functiei outputToImage care redirecteaza imaginea obtinuta
+catre fisierul de output pentru Task-ul 1.
